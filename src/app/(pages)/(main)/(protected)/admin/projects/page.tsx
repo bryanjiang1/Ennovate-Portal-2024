@@ -122,7 +122,7 @@ export default function AdminProjects() {
             id="name"
             {...register("name")}
             className={`bg-white border ${errors.name ? "border-red-500" : "border-ennovate-gray"
-              } text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full p-2.5`}
+              } text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full p-2.5`}
             placeholder="Project Name"
           />
           {errors.name && (
@@ -140,7 +140,7 @@ export default function AdminProjects() {
             id="description"
             {...register("description")}
             className={`bg-white border ${errors.description ? "border-red-500" : "border-ennovate-gray"
-              } text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full p-2.5`}
+              } text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full p-2.5`}
             placeholder="Project Description"
           />
           {errors.description && (
@@ -158,7 +158,7 @@ export default function AdminProjects() {
             id="description"
             {...register("presentationSlides")}
             className={`bg-white border ${errors.presentationSlides ? "border-red-500" : "border-ennovate-gray"
-              } text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full p-2.5`}
+              } text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full p-2.5`}
             placeholder="Project Presentation Slides"
           />
           {errors.presentationSlides && (
@@ -179,7 +179,7 @@ export default function AdminProjects() {
               id="businessProposal"
               {...register("businessProposal")}
               className={`bg-white border ${errors.businessProposal ? "border-red-500" : "border-ennovate-gray"
-                } text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full p-2.5`}
+                } text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full p-2.5`}
             >
               <option value="">None</option>
               {businessProposals.map((proposal: any) => (
@@ -207,7 +207,7 @@ export default function AdminProjects() {
               id="blog"
               {...register("blog")}
               className={`bg-white border ${errors.blog ? "border-red-500" : "border-ennovate-gray"
-                } text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full p-2.5`}
+                } text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full p-2.5`}
             >
               <option value="">None</option>
               {blogs.map((blog: IBlogPopulated) => (

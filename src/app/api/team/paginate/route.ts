@@ -1,33 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongoose";
 import TeamMember from "@/models/TeamMember";
-import { redis } from "@/lib/redis";
 import { FilterQuery } from "mongoose";
-import {
-  CACHE_KEY_EXPIRY_TIME,
-  TEAM_MEMBERS_PER_PAGE,
-} from "@/constants/actions";
+import { TEAM_MEMBERS_PER_PAGE } from "@/constants/actions";
 import { captureException } from "@sentry/nextjs";
+import { z } from "zod";
+
+const paginationSchema = z.object({
+  query: z.string().default(""),
+  currentPage: z.number().int().positive().default(1),
+});
 
 export async function POST(request: NextRequest) {
   try {
-    const { query = "", currentPage = 1 } = await request.json();
+    const input = paginationSchema.safeParse(await request.json());
+    if (!input.success) {
+      return NextResponse.json(
+        { message: "Invalid team search or page" },
+        { status: 400 },
+      );
+    }
+    const { query, currentPage } = input.data;
 
     await connectToDatabase();
 
     let queryObject: FilterQuery<typeof TeamMember> = {};
-    const cacheKey = `teamMember?currentPage=${currentPage}&query=${query}`;
-
-    const cachedValue = await redis.get(cacheKey);
-
-    if (cachedValue) {
-      return NextResponse.json(JSON.parse(cachedValue));
-    }
-
-    let finalQuery = query
-      .split(" ")
-      .map((t: string) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase())
-      .join(" ");
+    // Read directly from MongoDB so edits cannot race with cache invalidation.
+    const finalQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
     if (query) {
       queryObject = {
@@ -43,7 +42,11 @@ export async function POST(request: NextRequest) {
 
     const [total, teamMembers] = await Promise.all([
       TeamMember.countDocuments(queryObject),
-      TeamMember.find(queryObject).skip(skip).limit(limit).exec(),
+      TeamMember.find(queryObject)
+        .sort({ _id: 1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
     ]);
 
     const res = {
@@ -51,18 +54,12 @@ export async function POST(request: NextRequest) {
       totalPages: Math.ceil(total / TEAM_MEMBERS_PER_PAGE),
     };
 
-    await redis
-      .pipeline()
-      .set(cacheKey, JSON.stringify(res))
-      .expire(cacheKey, CACHE_KEY_EXPIRY_TIME)
-      .exec();
-
     return NextResponse.json(res);
   } catch (e) {
     captureException(e);
     return NextResponse.json(
       { message: "Failed to fetch team members" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

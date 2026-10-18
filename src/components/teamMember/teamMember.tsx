@@ -1,8 +1,8 @@
 "use client";
 
-import { deleteBase64ImageFromFirebase } from "@/utils/utils";
+import { deleteFirebaseImage } from "@/utils/utils";
 import Image from "next/image";
-import { useReducer } from "react";
+import { useReducer, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { ITeamMember } from "@/models/TeamMember";
 import axios from "axios";
@@ -33,7 +33,7 @@ const initialState: TeamMemberState = {
 
 const teamMemberReducer = (
   state: TeamMemberState,
-  action: TeamMemberAction
+  action: TeamMemberAction,
 ): TeamMemberState => {
   switch (action.type) {
     case "IMAGE_LOADED":
@@ -57,6 +57,7 @@ const teamMemberReducer = (
 
 const TeamMember = ({ teamMember }: { teamMember: ITeamMember }) => {
   const [state, dispatch] = useReducer(teamMemberReducer, initialState);
+  const [deleteError, setDeleteError] = useState("");
 
   const { isHovered, isLoaded, toDelete, isDeleting } = state;
 
@@ -75,20 +76,17 @@ const TeamMember = ({ teamMember }: { teamMember: ITeamMember }) => {
   };
 
   const handleDelete = async () => {
+    setDeleteError("");
     try {
       dispatch({ type: "DELETING_MEMBER" });
-      await Promise.all([
-        deleteBase64ImageFromFirebase(
-          teamMember.image,
-          teamMember.name,
-          "team-members"
-        ),
-        axios.delete(`/api/team/delete/${teamMember._id}`),
-      ]);
+      await axios.delete(`/api/team/delete/${teamMember._id}`);
+      // Photo cleanup must not turn a successful deletion into a failed retry.
+      await deleteFirebaseImage(teamMember.image).catch(console.error);
       dispatch({ type: "DELETED_MEMBER" });
       dispatch({ type: "CLOSE_DELETE_MODAL" });
       window.location.href = "/team"; // hard refresh
-    } catch (e) {
+    } catch {
+      setDeleteError("Unable to remove this member. Please try again.");
       dispatch({ type: "DELETED_MEMBER" });
     }
   };
@@ -110,7 +108,7 @@ const TeamMember = ({ teamMember }: { teamMember: ITeamMember }) => {
           priority
         />
         <div
-          className="absolute inset-0 bg-gradient-to-t from-blue-600 via-transparent to-transparent transition-opacity duration-300 ease-in-out"
+          className="absolute inset-0 bg-gradient-to-t from-ennovate-main via-transparent to-transparent transition-opacity duration-300 ease-in-out"
           style={{ opacity: isHovered ? 1 : 0.7 }}
         />
         <div className="absolute bottom-0 left-0 px-6 py-4 text-white z-10">
@@ -196,6 +194,11 @@ const TeamMember = ({ teamMember }: { teamMember: ITeamMember }) => {
                 <h3 className="mb-5 text-xl font-bold text-ennovate-dark-blue">
                   Remove {teamMember.name}?
                 </h3>
+                {deleteError && (
+                  <p role="alert" className="mb-4 text-red-600">
+                    {deleteError}
+                  </p>
+                )}
                 <button
                   data-modal-hide="popup-modal"
                   type="button"

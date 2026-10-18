@@ -92,7 +92,7 @@ export default function AdminBlog() {
             id="mediumUrl"
             {...register("mediumUrl")}
             className={`bg-white border ${errors.mediumUrl ? "border-red-500" : "border-ennovate-gray"
-              } text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full p-2.5`}
+              } text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full p-2.5`}
             placeholder="https://medium.com/@username/article"
           />
           {errors.mediumUrl && (
@@ -113,7 +113,7 @@ export default function AdminBlog() {
             type="checkbox"
             id="featured"
             {...register("featured")}
-            className="h-5 w-5 text-ennovate-main rounded focus:ring-blue-500 focus:border-ennovate-main ml-2"
+            className="h-5 w-5 text-ennovate-main rounded focus:ring-ennovate-main focus:border-ennovate-main ml-2"
           />
         </div>
 

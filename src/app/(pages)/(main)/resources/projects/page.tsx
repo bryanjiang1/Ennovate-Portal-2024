@@ -188,7 +188,7 @@ export default function Projects() {
                       setSlideLink(e.target.value);
                       console.log(slideLink);
                     }}
-                    className="bg-white border border-ennovate-grey text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full p-2.5 mb-4"
+                    className="bg-white border border-ennovate-grey text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full p-2.5 mb-4"
                     placeholder={`${selectedProject.name}'s Presentation Slides Link`}
                   />
                 )}

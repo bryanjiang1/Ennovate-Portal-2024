@@ -4,6 +4,5 @@ export const navbarLinks = [
   { name: "THE TEAM", href: "/team" },
   { name: "FINAL COMP", href: "/comp" },
   { name: "RESOURCES", href: "/resources" },
-  { name: "CAREER COMPASS WORKSHOPS", href: "/career-compass-workshops" },
-  { name: "MENTORSHIP PROGRAM", href: "/mentorship-program" }
+  { name: "MENTORSHIP PROGRAM", href: "/mentorship-program" },
 ];

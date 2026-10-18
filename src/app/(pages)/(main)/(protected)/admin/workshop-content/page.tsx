@@ -106,7 +106,7 @@ export default function AdminBusinessWorkshop() {
             id="name"
             {...register("name")}
             className={`bg-white border ${errors.name ? "border-red-500" : "border-ennovate-gray"
-              } text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full p-2.5`}
+              } text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full p-2.5`}
             placeholder="Ennovate UBC Workshop"
           />
           {errors.name && (
@@ -125,7 +125,7 @@ export default function AdminBusinessWorkshop() {
             id="month"
             {...register("month")}
             className={`bg-white border ${errors.month ? "border-red-500" : "border-ennovate-gray"
-              } text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full p-2.5`}
+              } text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full p-2.5`}
             defaultValue={getCurrentMonthYear()}
           />
           {errors.month && (
@@ -144,7 +144,7 @@ export default function AdminBusinessWorkshop() {
             id="slides"
             {...register("slides")}
             className={`bg-white border ${errors.slides ? "border-red-500" : "border-ennovate-gray"
-              } text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full p-2.5`}
+              } text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full p-2.5`}
             placeholder="https://docs.google.com/presentation/d/FILE_ID/view?usp=sharing"
           />
           {errors.slides && (
@@ -164,7 +164,7 @@ export default function AdminBusinessWorkshop() {
             id="worksheet"
             {...register("worksheet")}
             className={`bg-white border ${errors.worksheet ? "border-red-500" : "border-ennovate-gray"
-              } text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full p-2.5`}
+              } text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full p-2.5`}
             placeholder="https://docs.google.com/document/d/FILE_ID/view?usp=sharing"
           />
           {errors.worksheet && (

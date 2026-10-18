@@ -173,7 +173,7 @@ export default function BusinessWorkshops() {
           <input
             type="text"
             id="table-search"
-            className="block p-2 ps-10 text-md text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+            className="block p-2 ps-10 text-md text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-ennovate-main focus:border-ennovate-main"
             placeholder="Search Workshop Name"
             onChange={(e) => handleSearch(e.target.value)}
           />

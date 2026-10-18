@@ -1,5 +1,6 @@
 import { connectToDatabase } from "@/lib/mongoose";
-import { redis } from "@/lib/redis";
+import { teamMemberError } from "@/lib/teamMemberError";
+import { savedTeamMemberSchema } from "@/validation/teamMember";
 import TeamMember from "@/models/TeamMember";
 import { captureException, captureMessage } from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
@@ -13,14 +14,16 @@ export async function PUT(
 
     const { id } = params;
 
-    const body = await request.json();
+    const body = savedTeamMemberSchema.parse(await request.json());
 
-    await TeamMember.findByIdAndUpdate(id, body);
-
-    const cachedKeys = await redis.keys("teamMember?*");
-
-    if (cachedKeys.length > 0) {
-      await redis.del(cachedKeys);
+    const member = await TeamMember.findByIdAndUpdate(id, body, {
+      runValidators: true,
+    });
+    if (!member) {
+      return NextResponse.json(
+        { message: "Team member not found" },
+        { status: 404 },
+      );
     }
 
     captureMessage(`Updated team member ${id}`, "info");
@@ -28,9 +31,6 @@ export async function PUT(
     return NextResponse.json("Success");
   } catch (e) {
     captureException(e);
-    return NextResponse.json(
-      { message: "Failed to update team member" },
-      { status: 500 },
-    );
+    return teamMemberError(e, "Failed to update team member");
   }
 }

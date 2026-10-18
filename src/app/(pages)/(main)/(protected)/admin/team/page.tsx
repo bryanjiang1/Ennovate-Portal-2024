@@ -1,32 +1,31 @@
 "use client";
 
-import {
-  uploadBase64ImageToFirebase,
-  validateFirebaseImageLink,
-} from "@/utils/utils";
+import { uploadBase64ImageToFirebase } from "@/utils/utils";
+import { teamMemberSchema } from "@/validation/teamMember";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
-import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import { FileRejection, useDropzone } from "react-dropzone";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useDropzone } from "react-dropzone";
 import { useForm } from "react-hook-form";
-import { a } from "react-spring";
 import { z } from "zod";
 
-const teamMemberSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address"),
-  title: z.string().min(1, "Title is required"),
-  image: z.string().min(1, "Image is required"),
-});
-
 type TeamMemberFormData = z.infer<typeof teamMemberSchema>;
+const emptyMember = { name: "", email: "", title: "", image: "" };
 
 export default function AdminTeamMember() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isReadingImage, setIsReadingImage] = useState(false);
+  const [loadedId, setLoadedId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const submitting = useRef(false);
+  const imageReader = useRef<FileReader | null>(null);
+  const router = useRouter();
   const searchParams = useSearchParams();
   const updateId: string = searchParams.get("update") || "";
+  const isLoading = loadedId !== updateId;
 
   const {
     register,
@@ -37,56 +36,81 @@ export default function AdminTeamMember() {
     formState: { errors },
   } = useForm<TeamMemberFormData>({
     resolver: zodResolver(teamMemberSchema),
+    defaultValues: emptyMember,
   });
 
   useEffect(() => {
+    const controller = new AbortController();
+    imageReader.current?.abort();
+    setIsReadingImage(false);
+    reset(emptyMember);
+    setImagePreview(null);
+    setErrorMessage("");
+    setSuccessMessage("");
+    setLoadedId(null);
     const setUpdateDefault = async () => {
-      if (updateId) {
-        const res = await axios.get(`/api/team/query/${updateId}`);
-        const teamMember = res.data;
-
-        reset({
-          name: teamMember.name,
-          image: teamMember.image,
-          title: teamMember.title,
-          email: teamMember.email,
-        });
-
-        setImagePreview(teamMember.image);
+      try {
+        if (updateId) {
+          const res = await axios.get(`/api/team/query/${updateId}`, {
+            signal: controller.signal,
+          });
+          if (controller.signal.aborted) return;
+          reset(res.data);
+          setImagePreview(res.data.image);
+        }
+        setLoadedId(updateId);
+      } catch {
+        if (!controller.signal.aborted) {
+          setErrorMessage(
+            "Unable to load this member. Please reload and try again.",
+          );
+        }
       }
     };
 
     setUpdateDefault();
+    return () => {
+      controller.abort();
+      imageReader.current?.abort();
+    };
   }, [reset, updateId]);
-
-  // use callback to apply memoization
 
   const onDropAccepted = useCallback(
     (acceptedFiles: File[]) => {
+      imageReader.current?.abort();
       const reader = new FileReader();
+      imageReader.current = reader;
+      setIsReadingImage(true);
       reader.onload = () => {
         const base64 = reader.result as string;
         setValue("image", base64, { shouldValidate: true });
         setImagePreview(base64);
+        setIsReadingImage(false);
+        setSuccessMessage("");
       };
-      reader.readAsDataURL(acceptedFiles[acceptedFiles.length - 1]);
+      reader.onerror = () => {
+        setIsReadingImage(false);
+        setError("image", {
+          message: "Unable to read this image. Please try another file.",
+        });
+      };
+      reader.readAsDataURL(acceptedFiles[0]);
     },
-    [setValue]
+    [setValue, setError],
   );
 
-  const onDropRejected = useCallback((rejectedFiles: FileRejection[]) => {
-    rejectedFiles.forEach((f: FileRejection) => {
-      setError("image", {
-        "type": "validate",
-        "message": `Invalid file type! Only jpeg, jpg and png are accepted.`
-      })
-    })
-  }, [setValue]);
-
+  const onDropRejected = useCallback(() => {
+    setError("image", {
+      type: "validate",
+      message: "Please select one JPEG or PNG image.",
+    });
+  }, [setError]);
 
   const { getRootProps, getInputProps } = useDropzone({
     onDropAccepted,
     onDropRejected,
+    multiple: false,
+    disabled: isLoading || isSubmitting || isReadingImage,
     accept: {
       "image/jpeg": [".jpeg", ".jpg"],
       "image/png": [".png"],
@@ -94,20 +118,27 @@ export default function AdminTeamMember() {
   });
 
   const onSubmit = async (data: TeamMemberFormData) => {
+    if (submitting.current || isLoading || isReadingImage) return;
+    submitting.current = true;
+    setErrorMessage("");
+    setSuccessMessage("");
     try {
       setIsSubmitting(true);
       const { name, email, title, image } = data;
       let imageUrl;
 
-      if (updateId && validateFirebaseImageLink(image)) {
+      if (!image.startsWith("data:")) {
         imageUrl = image;
       } else {
         imageUrl = await uploadBase64ImageToFirebase(
           image,
-          name,
-          "team-members"
+          `${name}-${crypto.randomUUID()}`,
+          "team-members",
         );
-      } // handle update case where image is not base64 but firebase link (MUST be update case)
+        // Reuse this upload if saving fails and the editor retries.
+        setValue("image", imageUrl);
+        setImagePreview(imageUrl);
+      }
 
       const body = {
         name: name,
@@ -121,14 +152,24 @@ export default function AdminTeamMember() {
       } else {
         await axios.post("/api/team/create", body);
       }
-      setIsSubmitting(false);
-      reset();
-      setImagePreview(null);
-
       if (updateId) {
-        window.location.href = "/team";
+        router.push("/team");
+      } else {
+        reset(emptyMember);
+        setImagePreview(null);
+        setSuccessMessage(
+          "Team member added. You can add another member below.",
+        );
       }
-    } catch (e) {
+    } catch (error) {
+      setErrorMessage(
+        axios.isAxiosError(error) &&
+          typeof error.response?.data?.message === "string"
+          ? error.response.data.message
+          : "Unable to save this member. Please try again.",
+      );
+    } finally {
+      submitting.current = false;
       setIsSubmitting(false);
     }
   };
@@ -156,102 +197,125 @@ export default function AdminTeamMember() {
         <p className="mt-2 text-4xl text-center font-extrabold tracking-tight text-ennovate-dark-blue sm:text-5xl mb-6">
           Member {updateId ? "Updates" : "Registration"}
         </p>
-        <div className="mb-5">
-          <label
-            htmlFor="name"
-            className="block mb-2 text-lg font-bold text-ennovate-dark-blue"
-          >
-            Member Name
-          </label>
-          <input
-            id="name"
-            {...register("name")}
-            className={`bg-white border ${errors.name ? "border-red-500" : "border-ennovate-gray"
-              } text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full p-2.5`}
-            placeholder="Ennovate Member"
-          />
-          {errors.name && (
-            <p className="text-red-500 text-sm mt-2">{errors.name.message}</p>
-          )}
-        </div>
-        <div className="mb-5">
-          <label
-            htmlFor="email"
-            className="block mb-2 text-lg font-bold text-ennovate-dark-blue"
-          >
-            Member Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            {...register("email")}
-            className={`bg-white border ${errors.email ? "border-red-500" : "border-ennovate-gray"
-              } text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full p-2.5`}
-            placeholder="ennovateteam@gmail.com"
-          />
-          {errors.email && (
-            <p className="text-red-500 text-sm mt-2">{errors.email.message}</p>
-          )}
-        </div>
-        <div className="mb-5">
-          <label
-            htmlFor="title"
-            className="block mb-2 text-lg font-bold text-ennovate-dark-blue"
-          >
-            Member Title
-          </label>
-          <input
-            id="title"
-            {...register("title")}
-            className={`bg-white border ${errors.title ? "border-red-500" : "border-ennovate-gray"
-              } text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full p-2.5`}
-            placeholder="Project Director"
-          />
-          {errors.title && (
-            <p className="text-red-500 text-sm mt-2">{errors.title.message}</p>
-          )}
-        </div>
-        <div className="mb-5">
-          <label
-            htmlFor="image"
-            className="block mb-2 text-lg font-bold text-ennovate-dark-blue"
-          >
-            Member Image
-          </label>
-          <div
-            {...getRootProps()}
-            className={`bg-white border ${errors.image ? "border-red-500" : "border-ennovate-gray"
-              } text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full h-64 flex items-center justify-center cursor-pointer`}
-          >
-            <input {...getInputProps()} />
-            {imagePreview ? (
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="h-full w-full object-contain rounded-md"
-              />
-            ) : (
-              <CameraIcon />
+        {errorMessage && (
+          <p role="alert" className="mb-4 text-red-600">
+            {errorMessage}
+          </p>
+        )}
+        {successMessage && (
+          <p role="status" className="mb-4 text-ennovate-main">
+            {successMessage}
+          </p>
+        )}
+        {isLoading && !errorMessage && <p role="status">Loading member...</p>}
+        <fieldset disabled={isLoading || isSubmitting}>
+          <div className="mb-5">
+            <label
+              htmlFor="name"
+              className="block mb-2 text-lg font-bold text-ennovate-dark-blue"
+            >
+              Member Name
+            </label>
+            <input
+              id="name"
+              {...register("name")}
+              className={`bg-white border ${
+                errors.name ? "border-red-500" : "border-ennovate-gray"
+              } text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full p-2.5`}
+              placeholder="Ennovate Member"
+            />
+            {errors.name && (
+              <p className="text-red-500 text-sm mt-2">{errors.name.message}</p>
             )}
           </div>
-          {errors.image && (
-            <p className="text-red-500 text-sm mt-2">{errors.image.message}</p>
-          )}
-        </div>
-        <button
-          type="submit"
-          className="text-white text-lg font-bold bg-ennovate-main rounded-lg w-full px-5 py-2.5 text-center"
-          style={{ opacity: isSubmitting ? 0.7 : 1 }}
-          disabled={isSubmitting}
-        >
-          {isSubmitting
-            ? updateId
-              ? "Updating..."
-              : "Submitting..."
-            : updateId
-              ? "Update"
-              : "Submit"}
-        </button>
+          <div className="mb-5">
+            <label
+              htmlFor="email"
+              className="block mb-2 text-lg font-bold text-ennovate-dark-blue"
+            >
+              Member Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              {...register("email")}
+              className={`bg-white border ${
+                errors.email ? "border-red-500" : "border-ennovate-gray"
+              } text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full p-2.5`}
+              placeholder="ennovateteam@gmail.com"
+            />
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-2">
+                {errors.email.message}
+              </p>
+            )}
+          </div>
+          <div className="mb-5">
+            <label
+              htmlFor="title"
+              className="block mb-2 text-lg font-bold text-ennovate-dark-blue"
+            >
+              Member Title
+            </label>
+            <input
+              id="title"
+              {...register("title")}
+              className={`bg-white border ${
+                errors.title ? "border-red-500" : "border-ennovate-gray"
+              } text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full p-2.5`}
+              placeholder="Project Director"
+            />
+            {errors.title && (
+              <p className="text-red-500 text-sm mt-2">
+                {errors.title.message}
+              </p>
+            )}
+          </div>
+          <div className="mb-5">
+            <label
+              htmlFor="image"
+              className="block mb-2 text-lg font-bold text-ennovate-dark-blue"
+            >
+              Member Image
+            </label>
+            <div
+              {...getRootProps()}
+              className={`bg-white border ${
+                errors.image ? "border-red-500" : "border-ennovate-gray"
+              } text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full h-64 flex items-center justify-center cursor-pointer`}
+            >
+              <input {...getInputProps()} />
+              {imagePreview ? (
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="h-full w-full object-contain rounded-md"
+                />
+              ) : (
+                <CameraIcon />
+              )}
+            </div>
+            {errors.image && (
+              <p className="text-red-500 text-sm mt-2">
+                {errors.image.message}
+              </p>
+            )}
+          </div>
+          <button
+            type="submit"
+            className="text-white text-lg font-bold bg-ennovate-main rounded-lg w-full px-5 py-2.5 text-center"
+            style={{ opacity: isSubmitting ? 0.7 : 1 }}
+            disabled={isSubmitting || isReadingImage || isLoading}
+          >
+            {isSubmitting
+              ? updateId
+                ? "Updating..."
+                : "Submitting..."
+              : updateId
+                ? "Update"
+                : "Submit"}
+          </button>
+        </fieldset>
       </form>
     </div>
   );

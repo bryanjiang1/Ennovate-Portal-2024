@@ -45,8 +45,8 @@ const Navbar = () => {
       style={{
         backgroundColor:
           pathname === "/"
-            ? `rgba(63, 107, 180, ${scrollPosition * 0.01})`
-            : "#3f6bb4",
+            ? `rgba(0, 59, 111, ${Math.min(scrollPosition * 0.01, 1)})`
+            : "#003B6F",
       }}
     >
       <div className="max-w-screen-xl h-20 flex items-center justify-between mx-auto px-4">
@@ -72,7 +72,10 @@ const Navbar = () => {
             className="inline-flex items-center bg-transparent p-2 w-10 h-10 justify-center rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
             aria-controls="navbar-menu"
             aria-expanded={isMenuOpen}
-            style={{ pointerEvents: 'auto', WebkitTapHighlightColor: 'transparent' }}
+            style={{
+              pointerEvents: "auto",
+              WebkitTapHighlightColor: "transparent",
+            }}
           >
             <svg
               className="w-6 h-6"
@@ -82,7 +85,11 @@ const Navbar = () => {
               stroke="white"
               strokeWidth={2}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             </svg>
           </button>
         </div>

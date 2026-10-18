@@ -171,7 +171,7 @@ export default function AdminBusinessProposal() {
             id="name"
             {...register("name")}
             className={`bg-white border ${errors.name ? "border-red-500" : "border-ennovate-gray"
-              } text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full p-2.5`}
+              } text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full p-2.5`}
             placeholder="Ennovate UBC"
           />
           {errors.name && (
@@ -189,7 +189,7 @@ export default function AdminBusinessProposal() {
             id="description"
             {...register("description")}
             className={`bg-white border ${errors.description ? "border-red-500" : "border-ennovate-gray"
-              } text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full p-2.5`}
+              } text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full p-2.5`}
             placeholder="2nd Place 24/25 Sem 1"
           />
           {errors.description && (
@@ -208,7 +208,7 @@ export default function AdminBusinessProposal() {
             id="drive"
             {...register("drive")}
             className={`bg-white border ${errors.drive ? "border-red-500" : "border-ennovate-gray"
-              } text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full p-2.5`}
+              } text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full p-2.5`}
             placeholder="https://drive.google.com/file/d/FILE_ID/view?usp=sharing"
           />
           {errors.drive && (
@@ -225,7 +225,7 @@ export default function AdminBusinessProposal() {
           <div
             {...getRootProps()}
             className={`bg-white border ${errors.image ? "border-red-500" : "border-ennovate-gray"
-              } text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full h-64 flex items-center justify-center cursor-pointer`}
+              } text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full h-64 flex items-center justify-center cursor-pointer`}
           >
             <input {...getInputProps()} />
             {imagePreview ? (

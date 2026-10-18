@@ -1,5 +1,5 @@
 import { connectToDatabase } from "@/lib/mongoose";
-import { redis } from "@/lib/redis";
+import { teamMemberError } from "@/lib/teamMemberError";
 import TeamMember from "@/models/TeamMember";
 import { captureException, captureMessage } from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
@@ -13,12 +13,12 @@ export async function DELETE(
 
     const { id } = params;
 
-    await TeamMember.findByIdAndDelete(id);
-
-    const cachedKeys = await redis.keys("teamMember?*");
-
-    if (cachedKeys.length > 0) {
-      await redis.del(cachedKeys);
+    const member = await TeamMember.findByIdAndDelete(id);
+    if (!member) {
+      return NextResponse.json(
+        { message: "Team member not found" },
+        { status: 404 },
+      );
     }
 
     captureMessage(`Deleted team member ${id}`, "info");
@@ -26,9 +26,6 @@ export async function DELETE(
     return NextResponse.json("Success");
   } catch (e) {
     captureException(e);
-    return NextResponse.json(
-      { message: "Failed to delete team member" },
-      { status: 500 },
-    );
+    return teamMemberError(e, "Failed to delete team member");
   }
 }

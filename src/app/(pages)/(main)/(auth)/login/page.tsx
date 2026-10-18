@@ -73,7 +73,7 @@ export default function LoginForm() {
             id="email"
             {...register("email")}
             className={`bg-white border ${errors.email ? "border-red-500" : "border-ennovate-gray"
-              } text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full p-2.5`}
+              } text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full p-2.5`}
             placeholder="Enter your email"
           />
           {errors.email && (
@@ -92,7 +92,7 @@ export default function LoginForm() {
             id="password"
             {...register("password")}
             className={`bg-white border ${errors.password ? "border-red-500" : "border-ennovate-gray"
-              } text-ennovate-main text-sm rounded-md focus:ring-blue-500 focus:border-ennovate-main block w-full p-2.5`}
+              } text-ennovate-main text-sm rounded-md focus:ring-ennovate-main focus:border-ennovate-main block w-full p-2.5`}
             placeholder="Enter your password"
           />
           {errors.password && (

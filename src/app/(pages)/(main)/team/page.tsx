@@ -14,29 +14,31 @@ interface TeamMembersState {
   teamMembers: ITeamMember[];
   totalPages: number;
   loading: boolean;
+  error: boolean;
 }
 
 type TeamMembersAction =
   | { type: "FETCH_START" }
   | {
-    type: "FETCH_SUCCESS";
-    payload: { teamMembers: ITeamMember[]; totalPages: number };
-  }
+      type: "FETCH_SUCCESS";
+      payload: { teamMembers: ITeamMember[]; totalPages: number };
+    }
   | { type: "FETCH_FAILURE" };
 
 const initialState: TeamMembersState = {
   teamMembers: [],
   totalPages: 0,
   loading: true,
+  error: false,
 };
 
 const teamMembersReducer = (
   state: TeamMembersState,
-  action: TeamMembersAction
+  action: TeamMembersAction,
 ): TeamMembersState => {
   switch (action.type) {
     case "FETCH_START":
-      return { ...state, loading: true };
+      return { ...state, loading: true, error: false };
     case "FETCH_SUCCESS":
       return {
         ...state,
@@ -45,7 +47,7 @@ const teamMembersReducer = (
         loading: false,
       };
     case "FETCH_FAILURE":
-      return { ...state, loading: false };
+      return { ...state, loading: false, error: true };
     default:
       return state;
   }
@@ -62,28 +64,34 @@ export default function Team({
   const query: string = searchParams?.query || "";
   const currentPage: number = Number(searchParams?.page) || 1;
   const [state, dispatch] = useReducer(teamMembersReducer, initialState);
-  const { teamMembers, totalPages, loading } = state;
+  const { teamMembers, totalPages, loading, error } = state;
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchData = async () => {
       dispatch({ type: "FETCH_START" });
       try {
-        const res = await axios.post("/api/team/paginate", {
-          query,
-          currentPage,
-        });
-        const { teamMembers, totalPages } = await res.data;
+        const res = await axios.post(
+          "/api/team/paginate",
+          {
+            query,
+            currentPage,
+          },
+          { signal: controller.signal },
+        );
+        if (controller.signal.aborted) return;
+        const { teamMembers, totalPages } = res.data;
         dispatch({
           type: "FETCH_SUCCESS",
           payload: { teamMembers, totalPages },
         });
-      } catch (error) {
-        console.log(error);
-        dispatch({ type: "FETCH_FAILURE" });
+      } catch {
+        if (!controller.signal.aborted) dispatch({ type: "FETCH_FAILURE" });
       }
     };
 
     fetchData();
+    return () => controller.abort();
   }, [query, currentPage]);
 
   return (
@@ -94,10 +102,17 @@ export default function Team({
       <Search />
       {loading ? (
         <TeamMemberSkeletonGrid />
+      ) : error ? (
+        <p role="alert" className="my-8 text-red-600">
+          Unable to load the team. Please reload and try again.
+        </p>
       ) : totalPages == 0 ? (
         <NoTeam />
       ) : (
-        <TeamMemberGrid teamMembers={teamMembers} isLastPage={currentPage == totalPages} />
+        <TeamMemberGrid
+          teamMembers={teamMembers}
+          isLastPage={currentPage == totalPages}
+        />
       )}
       <Pagination totalPages={totalPages} />
     </PageCenteringWrapper>

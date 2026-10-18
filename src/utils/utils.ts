@@ -74,4 +74,9 @@ export async function deleteBase64ImageFromFirebase(
   }
 }
 
+export async function deleteFirebaseImage(imageUrl: string) {
+  // The member's name can change independently of its stored photo path.
+  await deleteObject(ref(storage, imageUrl));
+}
+
 export async function parseMediumMetadata(html: string) {}

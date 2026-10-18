@@ -14,7 +14,7 @@ const config: Config = {
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
       colors: {
-        "ennovate-main": "#3f6bb4",
+        "ennovate-main": "#003B6F",
         "ennovate-yellow": "#ffbc1c",
         "ennovate-gray": "#9c9c9c",
         "ennovate-dark-blue": "#273f80",

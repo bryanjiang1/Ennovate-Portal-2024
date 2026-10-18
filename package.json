@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "test:team": "node --test tests/team-api.test.cjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

@@ -18,7 +18,7 @@ const Landing = () => {
       </div>
 
       {/* Blue Overlay */}
-      <div className="absolute inset-0 bg-blue-500 opacity-30"></div>
+      <div className="absolute inset-0 bg-ennovate-main opacity-30"></div>
       {/* 
       1. Choice 1: 500 - 30
       2. Choice 2: 900 - 40

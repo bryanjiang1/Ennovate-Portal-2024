@@ -40,7 +40,7 @@ export default function PastCompRecordings() {
                         <span className="text-lg font-bold text-gray-900">{p.month}</span>
                         <Link href={p.videoUrl} target="blank">
                             <button
-                                className="text-white bg-ennovate-main hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center">
+                                className="text-white bg-ennovate-main hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-ennovate-main/30 font-medium rounded-full text-sm px-5 py-2.5 text-center">
                                 See video
                             </button>
                         </Link>
