@@ -55,6 +55,15 @@ connection strings in Netlify's environment settings, out of source control.
 After changing Firebase settings, trigger a new deploy so the browser bundle is
 rebuilt with the correct values.
 
+Firebase web configuration is public client configuration, including the Firebase
+API key. `netlify.toml` excludes only these configuration variables (and the
+legacy `appId`, `authDomain`, and `messagingSenderId` variable names) from Netlify's
+environment-variable secret scanning. Scanning remains enabled for database
+credentials, Redis URLs, service account keys, and other secrets.
+
+References: [Firebase API keys](https://firebase.google.com/docs/projects/api-keys)
+and [Netlify secret scanning configuration](https://docs.netlify.com/build/environment-variables/secrets-controller/#configure-secret-scanning).
+
 ## Run Locally
 
 Install dependencies
