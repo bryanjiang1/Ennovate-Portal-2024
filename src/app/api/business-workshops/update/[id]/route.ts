@@ -17,7 +17,7 @@ export async function PUT(
 
     await Promise.all([
       BusinessWorkshop.findByIdAndUpdate(id, body),
-      redis.del([`businessWorkshop:${id}`, "businessWorkshop"]),
+      redis?.del([`businessWorkshop:${id}`, "businessWorkshop"]),
     ]);
 
     captureMessage(`Updated business workshop with id ${id}`, "info");

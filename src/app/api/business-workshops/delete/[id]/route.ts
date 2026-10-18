@@ -15,7 +15,7 @@ export async function DELETE(
 
     await Promise.all([
       BusinessWorkshop.findByIdAndDelete(id),
-      redis.del([`businessWorkshop:${id}`, "businessWorkshop"]),
+      redis?.del([`businessWorkshop:${id}`, "businessWorkshop"]),
     ]);
 
     captureMessage(`Deleted business workshop with id ${id}`, "info");

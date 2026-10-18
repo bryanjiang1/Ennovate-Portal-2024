@@ -17,7 +17,7 @@ export async function PUT(
 
     await Promise.all([
       Blog.findByIdAndUpdate(id, body),
-      redis.del(["blog", "blog?featured"]),
+      redis?.del(["blog", "blog?featured"]),
     ]);
 
     captureMessage(`Updated blog with id ${id}`, 'info');

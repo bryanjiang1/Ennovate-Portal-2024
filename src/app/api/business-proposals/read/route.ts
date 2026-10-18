@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     await connectToDatabase();
 
     const cacheKey = "businessProposal";
-    const cachedValue = await redis.get(cacheKey);
+    const cachedValue = await redis?.get(cacheKey);
 
     if (cachedValue) {
       return NextResponse.json(JSON.parse(cachedValue));
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     const businessProposals = await BusinessProposal.find({});
 
     await redis
-      .pipeline()
+      ?.pipeline()
       .set(cacheKey, JSON.stringify(businessProposals))
       .expire(cacheKey, CACHE_KEY_EXPIRY_TIME)
       .exec();

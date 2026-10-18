@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
     await Project.create({ name, description, presentationSlides, businessProposal, blog });
 
-    await redis.del(["project"]);
+    await redis?.del(["project"]);
 
     captureMessage(`Created project ${name}`, 'info');
 

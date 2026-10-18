@@ -38,6 +38,23 @@ REDIS_URL
 
 ```
 
+`REDIS_URL` is optional. Without it, resource routes read directly from MongoDB
+and skip cache writes and invalidation.
+
+## Deploy on Netlify
+
+The repository's `netlify.toml` sets the build command to `npm run build` and the
+publish directory to `.next` for the Netlify Next.js runtime.
+
+Set the Firebase `NEXT_PUBLIC_FIREBASE_*` variables above in Netlify before
+building; Next.js embeds these public settings into the browser bundle. Set
+`MONGO_URI` for Functions so API routes can access the existing database. If
+using Redis, set `REDIS_URL` for Functions as well. Keep database and cache
+connection strings in Netlify's environment settings, out of source control.
+
+After changing Firebase settings, trigger a new deploy so the browser bundle is
+rebuilt with the correct values.
+
 ## Run Locally
 
 Install dependencies

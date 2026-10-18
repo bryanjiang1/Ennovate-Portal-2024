@@ -15,7 +15,7 @@ export async function DELETE(
 
     await Promise.all([
       Project.findByIdAndDelete(id),
-      redis.del(["project"]),
+      redis?.del(["project"]),
     ]);
 
     captureMessage(`Deleted project with id ${id}`, "info");

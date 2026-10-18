@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const cacheKey = body.featured ? "blog?featured" : "blog";
 
-    const cachedValue = await redis.get(cacheKey);
+    const cachedValue = await redis?.get(cacheKey);
     if (cachedValue) {
       return NextResponse.json(JSON.parse(cachedValue));
     }
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     );
 
     await redis
-      .pipeline()
+      ?.pipeline()
       .set(cacheKey, JSON.stringify(blogData))
       .expire(cacheKey, CACHE_KEY_EXPIRY_TIME)
       .exec();

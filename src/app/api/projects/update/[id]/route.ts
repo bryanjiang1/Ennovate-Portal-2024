@@ -17,7 +17,7 @@ export async function PUT(
 
     await Promise.all([
       Project.findByIdAndUpdate(id, body),
-      redis.del(["project"]),
+      redis?.del(["project"]),
     ]);
 
     captureMessage(`Updated project with id ${id}`, "info");

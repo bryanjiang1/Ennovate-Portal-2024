@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
     await BusinessProposal.create({ name, description, drive, image });
 
-    await redis.del(["businessProposal"]);
+    await redis?.del(["businessProposal"]);
 
     captureMessage(`Created business report ${name}`, 'info');
 

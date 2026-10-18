@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
     await Blog.create({ mediumUrl, featured });
 
-    await redis.del(["blog", "blog?featured"]);
+    await redis?.del(["blog", "blog?featured"]);
 
     captureMessage(`Created blog with URL ${mediumUrl}`, 'info');
 

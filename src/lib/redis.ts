@@ -1,11 +1,7 @@
 import { Redis } from "ioredis";
 
-const getRedisUrl = () => {
-  if (process.env.REDIS_URL) {
-    return process.env.REDIS_URL;
-  }
-
-  throw new Error("Redis URL is not defined in .env");
-};
-
-export const redis = new Redis(getRedisUrl());
+// Redis only accelerates reads; MongoDB remains the source of truth.
+// Do not require a cache or open a network connection during Next.js builds.
+export const redis = process.env.REDIS_URL
+  ? new Redis(process.env.REDIS_URL, { lazyConnect: true })
+  : null;

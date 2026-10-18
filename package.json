@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "test:team": "node --test tests/team-api.test.cjs",
+    "test:deployment": "node --test tests/deployment.test.cjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

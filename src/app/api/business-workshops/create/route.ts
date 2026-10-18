@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
     await BusinessWorkshop.create({ name, month, slides, worksheet });
 
-    await redis.del(["businessWorkshop"]);
+    await redis?.del(["businessWorkshop"]);
 
     captureMessage(`Created business workshop ${name}`, "info");
 

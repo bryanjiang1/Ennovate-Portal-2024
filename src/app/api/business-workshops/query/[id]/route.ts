@@ -14,7 +14,7 @@ export async function GET(
 
     const { id } = params;
     const cacheKey = `businessWorkshop:${id}`;
-    const cachedValue = await redis.get(cacheKey);
+    const cachedValue = await redis?.get(cacheKey);
 
     if (cachedValue) {
       return NextResponse.json(JSON.parse(cachedValue));
@@ -30,7 +30,7 @@ export async function GET(
     }
 
     await redis
-      .pipeline()
+      ?.pipeline()
       .set(cacheKey, JSON.stringify(businessWorkshop))
       .expire(cacheKey, CACHE_KEY_EXPIRY_TIME)
       .exec();

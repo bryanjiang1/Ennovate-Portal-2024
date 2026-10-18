@@ -15,7 +15,7 @@ export async function DELETE(
 
     await Promise.all([
       Blog.findByIdAndDelete(id),
-      redis.del(["blog", "blog?featured"]),
+      redis?.del(["blog", "blog?featured"]),
     ]);
 
     captureMessage(`Deleted blog with id ${id}`, 'info');

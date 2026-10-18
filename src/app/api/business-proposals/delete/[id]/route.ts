@@ -15,7 +15,7 @@ export async function DELETE(
 
     await Promise.all([
       BusinessProposal.findByIdAndDelete(id),
-      redis.del([`businessProposal:${id}`, "businessProposal"]),
+      redis?.del([`businessProposal:${id}`, "businessProposal"]),
     ]);
 
     captureMessage(`Deleted business report ${id}`, 'info');
